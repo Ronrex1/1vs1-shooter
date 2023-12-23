@@ -7,52 +7,74 @@ pygame.init()
 # Set up the game window
 screen_width, screen_height = 800, 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Black & White Shooter")
+pygame.display.set_caption("Colorful Shooter")
 
 # Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+PLAYER_COLOR = (0, 0, 255)           # Blue and Red for Player
+ENEMY_LOW_POINTS_COLOR = (180, 180, 180)  # Light gray for less points
+ENEMY_HIGH_POINTS_COLOR = (50, 50, 50)    # Dark gray for high points
 
 # Player class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((50, 50))
-        self.image.fill(WHITE)
+        self.image.fill(PLAYER_COLOR)
         self.rect = self.image.get_rect()
         self.rect.center = (screen_width // 2, screen_height // 2)
 
     def update(self):
-        # Player movement logic here
         keys = pygame.key.get_pressed()
+        speed = 5
         if keys[pygame.K_LEFT]:
-            self.rect.x -= 5
+            self.rect.x -= speed
         if keys[pygame.K_RIGHT]:
-            self.rect.x += 5
+            self.rect.x += speed
         if keys[pygame.K_UP]:
-            self.rect.y -= 5
+            self.rect.y -= speed
         if keys[pygame.K_DOWN]:
-            self.rect.y += 5
+            self.rect.y += speed
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+        # Wrap around the screen
+        if self.rect.right < 0:
+            self.rect.left = screen_width
+        elif self.rect.left > screen_width:
+            self.rect.right = 0
+        if self.rect.bottom < 0:
+            self.rect.top = screen_height
+        elif self.rect.top > screen_height:
+            self.rect.bottom = 0
 
 # Enemy class
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((30, 30))
-        self.image.fill(BLACK)
+
+        # Determine point value and set color accordingly
+        self.point_value = random.choice([10, 30])
+        if self.point_value == 10:
+            self.image.fill(ENEMY_LOW_POINTS_COLOR)
+        else:
+            self.image.fill(ENEMY_HIGH_POINTS_COLOR)
+
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(screen_width - self.rect.width)
-        self.rect.y = random.randrange(screen_height - self.rect.height)
+        self.rect.y = random.randrange(-30, -10)
 
     def update(self):
-        # Enemy movement logic here
-        pass
+        speed = 3
+        self.rect.y += speed
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+        # Wrap around the screen
+        if self.rect.right < 0:
+            self.rect.left = screen_width
+        elif self.rect.left > screen_width:
+            self.rect.right = 0
+        if self.rect.bottom < 0:
+            self.rect.top = screen_height
+        elif self.rect.top > screen_height:
+            self.rect.bottom = 0
 
 # Create player and enemy groups
 all_sprites = pygame.sprite.Group()
@@ -78,14 +100,8 @@ while running:
     # Update
     all_sprites.update()
 
-    # Collision detection
-    hits = pygame.sprite.spritecollide(player, enemies, True)
-    if hits:
-        # Handle collision logic (e.g., reduce player's health, end game, etc.)
-        pass
-
     # Draw
-    screen.fill(BLACK)
+    screen.fill((0, 0, 0))  # Background color (black)
     all_sprites.draw(screen)
 
     # Update the display
